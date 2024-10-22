@@ -3,108 +3,118 @@
 
 using namespace std;
 
-string rotate(const string &n)
+int calculateAddOneButtonPresses(const string &n)
 {
-    if (n.size() == 1)
+    unsigned int buttonPresses = 0;
+
+    for (size_t i = 0; i < n.length(); ++i)
     {
-        return n;
+        if (n[i] != '0' && n[i] != '9')
+        {
+            int ch = n[i] - '0';
+            buttonPresses += 9 - ch;
+        }
     }
 
-    string rotated = n.substr(1) + n[0];
-    rotated.erase(0, rotated.find_first_not_of('0'));
-
-    return rotated;
+    return buttonPresses + 1;
 }
 
-string addOne(const string &n)
+int calculateSection(unsigned int sectionLength, unsigned int nineCountInSection, unsigned int zeroCountInSection, unsigned int nineCountInUninterruptedSeriesOfNinesInSection, bool isFirstSection)
 {
-    string result = n;
-
-    int carry = 1;
-
-    for (int i = result.size() - 1; i >= 0; --i)
+    if (nineCountInSection == sectionLength)
     {
-        if (carry == 0)
+        return 0;
+    }
+    else if (zeroCountInSection == 0)
+    {
+        if (isFirstSection && nineCountInUninterruptedSeriesOfNinesInSection > 0)
         {
-            break;
-        }
-
-        int digit = result[i] - '0';
-
-        digit += carry;
-
-        if (digit == 10)
-        {
-            result[i] = '0';
-            carry = 1;
+            return sectionLength - nineCountInUninterruptedSeriesOfNinesInSection;
         }
         else
         {
-            result[i] = digit + '0';
-            carry = 0;
+            return sectionLength - 1;
         }
     }
-
-    if (carry > 0)
+    else
     {
-        result.insert(result.begin(), '1');
+        return sectionLength - zeroCountInSection;
     }
-
-    return result;
 }
 
-bool isPowerOfTen(const string &n)
+bool allButLastCharAreNines(const string &n)
 {
-    if (n.length() < 2)
+    if (n.size() <= 1)
     {
         return false;
     }
 
-    if (n.find_first_not_of('0', 1) == string::npos)
+    for (size_t i = 0; i < n.size() - 1; ++i)
     {
-        return true;
+        if (n[i] != '9')
+        {
+            return false;
+        }
     }
 
-    return false;
+    return true;
 }
 
-bool isAllNines(const string &n)
+int calculateRotateButtonPresses(const string &n)
 {
-    if (n.find_first_not_of('9') == string::npos)
+    if (n.back() != '0' && allButLastCharAreNines(n))
     {
-        return true;
+        return 1;
     }
 
-    return false;
-}
+    unsigned int buttonPresses = 0;
+    unsigned int nineCountInSection = 0;
+    unsigned int zeroCountInSection = 0;
+    unsigned int sectionLength = 0;
+    unsigned int nineCountInUninterruptedSeriesOfNinesInSection = 1;
 
-bool isRightPartAllNines(const string &n)
-{
-    size_t zeroPos = n.rfind('0');
+    bool isFirstSection = true;
+    bool lastWasNine = true;
 
-    if (zeroPos == string::npos)
+    for (size_t i = n.length(); i-- > 0;)
     {
-        zeroPos = -1;
+        ++sectionLength;
+        if (n[i] == '0')
+        {
+            ++zeroCountInSection;
+            if (sectionLength == zeroCountInSection)
+            {
+                continue;
+            }
+            buttonPresses += calculateSection(sectionLength - 1, nineCountInSection, zeroCountInSection - 1, nineCountInUninterruptedSeriesOfNinesInSection, isFirstSection);
+
+            nineCountInSection = 0;
+            zeroCountInSection = 1;
+            sectionLength = 1;
+            isFirstSection = false;
+            lastWasNine = false;
+            nineCountInUninterruptedSeriesOfNinesInSection = 0;
+            continue;
+        }
+        else if (n[i] == '9')
+        {
+            ++nineCountInSection;
+            if (lastWasNine && sectionLength > 1)
+            {
+                ++nineCountInUninterruptedSeriesOfNinesInSection;
+            }
+        }
+        else
+        {
+            if (sectionLength > 1)
+            {
+                lastWasNine = false;
+            }
+        }
     }
+    buttonPresses += calculateSection(sectionLength, nineCountInSection, zeroCountInSection, nineCountInUninterruptedSeriesOfNinesInSection, isFirstSection);
 
-    string rightPart = n.substr(zeroPos + 1);
-
-    if (rightPart.find_first_not_of('9') == string::npos)
-    {
-        return true;
-    }
-
-    return false;
-}
-
-bool isLastDigitZero(const string &n)
-{
-    if (n.back() == '0')
-    {
-        return true;
-    }
-
-    return false;
+    return buttonPresses + 1;
 }
 
 int main()
@@ -113,41 +123,28 @@ int main()
 
     string n;
     cin >> n;
+    if (n == "1")
+    {
+        cout << 0;
 
+        return 0;
+    }
+    if (n.length() > 1 && n.find_first_not_of('0', 1) == string::npos && n[0] == '1')
+    {
+        cout << 1;
+
+        return 0;
+    }
+    if (n.find_first_not_of('9') == string::npos)
+    {
+        cout << 2;
+
+        return 0;
+    }
     unsigned int buttonPresses = 0;
 
-    while (true)
-    {
-        if (n == "1")
-        {
-            cout << buttonPresses;
+    buttonPresses += calculateAddOneButtonPresses(n);
+    buttonPresses += calculateRotateButtonPresses(n);
 
-            return 0;
-        }
-        else if (isPowerOfTen(n))
-        {
-            n = rotate(n);
-            buttonPresses++;
-        }
-        else if (isAllNines(n))
-        {
-            n = addOne(n);
-            buttonPresses++;
-        }
-        else if (isLastDigitZero(n))
-        {
-            n = rotate(n);
-            buttonPresses++;
-        }
-        else if (isRightPartAllNines(n))
-        {
-            n = rotate(n);
-            buttonPresses++;
-        }
-        else
-        {
-            n = addOne(n);
-            buttonPresses++;
-        }
-    }
+    cout << buttonPresses;
 }
