@@ -1,120 +1,58 @@
 #include <iostream>
 #include <string>
+#include <cmath>
 
 using namespace std;
 
-int calculateAddOneButtonPresses(const string &n)
+unsigned int calculateUsingRotateMethod(unsigned int sectionLength, unsigned int nineCountInSection, unsigned int zeroCountInSection, unsigned int rotateMethodAddOneButtonPresses)
 {
-    unsigned int buttonPresses = 0;
+    unsigned int rotateButtonPresses = 0;
 
-    for (size_t i = 0; i < n.length(); ++i)
-    {
-        if (n[i] != '0' && n[i] != '9')
-        {
-            int ch = n[i] - '0';
-            buttonPresses += 9 - ch;
-        }
-    }
-
-    return buttonPresses + 1;
-}
-
-int calculateSection(unsigned int sectionLength, unsigned int nineCountInSection, unsigned int zeroCountInSection, unsigned int nineCountInUninterruptedSeriesOfNinesInSection, bool isFirstSection)
-{
     if (nineCountInSection == sectionLength)
     {
-        return 0;
+        rotateButtonPresses = 0;
     }
     else if (zeroCountInSection == 0)
     {
-        if (isFirstSection && nineCountInUninterruptedSeriesOfNinesInSection > 0)
-        {
-            return sectionLength - nineCountInUninterruptedSeriesOfNinesInSection;
-        }
-        else
-        {
-            return sectionLength - 1;
-        }
+        rotateButtonPresses = sectionLength - 1;
     }
     else
     {
-        return sectionLength - zeroCountInSection;
+        rotateButtonPresses = sectionLength - zeroCountInSection;
     }
+
+    cout << "rotate method, addOne - " << rotateMethodAddOneButtonPresses << endl;
+    cout << "rotate method, rotate - " << rotateButtonPresses << endl;
+
+    return rotateMethodAddOneButtonPresses + rotateButtonPresses;
 }
 
-bool allButLastCharAreNines(const string &n)
+unsigned int calculateUsingAddingFirstMethod(bool lastSection, unsigned int addingFirstMethodAddOneButtonPresses)
 {
-    if (n.size() <= 1)
-    {
-        return false;
-    }
+    unsigned int rotateButtonPresses = (lastSection) ? 0 : 1;
 
-    for (size_t i = 0; i < n.size() - 1; ++i)
-    {
-        if (n[i] != '9')
-        {
-            return false;
-        }
-    }
+    cout << "adding first method, addOne - " << addingFirstMethodAddOneButtonPresses << endl;
+    cout << "adding first method, rotate - " << rotateButtonPresses << endl;
 
-    return true;
+    return rotateButtonPresses + addingFirstMethodAddOneButtonPresses + 9;
 }
 
-int calculateRotateButtonPresses(const string &n)
+unsigned int calculateSection(bool firstSection, bool lastSection, unsigned int sectionLength, unsigned int nineCountInSection, unsigned int zeroCountInSection, unsigned int rotateMethodAddOneButtonPresses, bool addingFirstMethodViable, unsigned int addingFirstMethodAddOneButtonPresses)
 {
-    if (n.back() != '0' && allButLastCharAreNines(n))
+    unsigned int sectionButtonPresses;
+
+    if (firstSection && addingFirstMethodViable)
     {
-        return 1;
+        unsigned int addingFirstMethod = calculateUsingAddingFirstMethod(lastSection, addingFirstMethodAddOneButtonPresses);
+        unsigned int rotateMethod = calculateUsingRotateMethod(sectionLength, nineCountInSection, zeroCountInSection, rotateMethodAddOneButtonPresses);
+
+        sectionButtonPresses = (addingFirstMethod < rotateMethod) ? addingFirstMethod : rotateMethod;
     }
-
-    unsigned int buttonPresses = 0;
-    unsigned int nineCountInSection = 0;
-    unsigned int zeroCountInSection = 0;
-    unsigned int sectionLength = 0;
-    unsigned int nineCountInUninterruptedSeriesOfNinesInSection = 1;
-
-    bool isFirstSection = true;
-    bool lastWasNine = true;
-
-    for (size_t i = n.length(); i-- > 0;)
+    else
     {
-        ++sectionLength;
-        if (n[i] == '0')
-        {
-            ++zeroCountInSection;
-            if (sectionLength == zeroCountInSection)
-            {
-                continue;
-            }
-            buttonPresses += calculateSection(sectionLength - 1, nineCountInSection, zeroCountInSection - 1, nineCountInUninterruptedSeriesOfNinesInSection, isFirstSection);
-
-            nineCountInSection = 0;
-            zeroCountInSection = 1;
-            sectionLength = 1;
-            isFirstSection = false;
-            lastWasNine = false;
-            nineCountInUninterruptedSeriesOfNinesInSection = 0;
-            continue;
-        }
-        else if (n[i] == '9')
-        {
-            ++nineCountInSection;
-            if (lastWasNine && sectionLength > 1)
-            {
-                ++nineCountInUninterruptedSeriesOfNinesInSection;
-            }
-        }
-        else
-        {
-            if (sectionLength > 1)
-            {
-                lastWasNine = false;
-            }
-        }
+        sectionButtonPresses = calculateUsingRotateMethod(sectionLength, nineCountInSection, zeroCountInSection, rotateMethodAddOneButtonPresses);
     }
-    buttonPresses += calculateSection(sectionLength, nineCountInSection, zeroCountInSection, nineCountInUninterruptedSeriesOfNinesInSection, isFirstSection);
-
-    return buttonPresses + 1;
+    return sectionButtonPresses;
 }
 
 int main()
@@ -123,6 +61,7 @@ int main()
 
     string n;
     cin >> n;
+
     if (n == "1")
     {
         cout << 0;
@@ -141,10 +80,59 @@ int main()
 
         return 0;
     }
-    unsigned int buttonPresses = 0;
 
-    buttonPresses += calculateAddOneButtonPresses(n);
-    buttonPresses += calculateRotateButtonPresses(n);
+    bool firstSection = true;
+
+    unsigned int buttonPresses = 0;
+    unsigned int sectionLength = 0;
+    unsigned int nineCountInSection = 0;
+    unsigned int zeroCountInSection = 0;
+
+    unsigned int rotateMethodAddOneButtonPresses = 0;
+    unsigned int addingFirstMethodAddOneButtonPresses = 0;
+
+    bool addingFirstMethodViable = true;
+
+    for (size_t i = n.length(); i-- > 0;)
+    {
+        ++sectionLength;
+        if (n[i] == '0')
+        {
+            ++zeroCountInSection;
+            if (sectionLength == zeroCountInSection)
+            {
+                continue;
+            }
+
+            buttonPresses += calculateSection(firstSection, false, sectionLength, nineCountInSection, zeroCountInSection, rotateMethodAddOneButtonPresses, addingFirstMethodViable, addingFirstMethodAddOneButtonPresses);
+            sectionLength = 0;
+            nineCountInSection = 0;
+            zeroCountInSection = 0;
+            rotateMethodAddOneButtonPresses = 0;
+            firstSection = false;
+
+            continue;
+        }
+        if (n[i] == '9')
+        {
+            ++nineCountInSection;
+
+            continue;
+        }
+        rotateMethodAddOneButtonPresses += 9 - (n[i] - '0');
+
+        if (firstSection && addingFirstMethodViable)
+        {
+            addingFirstMethodAddOneButtonPresses += 10 - ((n[i] - '0') * pow(10, sectionLength - 1));
+            if (addingFirstMethodAddOneButtonPresses > 1000000)
+            {
+                addingFirstMethodViable = false;
+            }
+        }
+    }
+
+    buttonPresses += calculateSection(firstSection, false, sectionLength, nineCountInSection, zeroCountInSection, rotateMethodAddOneButtonPresses, addingFirstMethodViable, addingFirstMethodAddOneButtonPresses);
+    buttonPresses += 2;
 
     cout << buttonPresses;
 }

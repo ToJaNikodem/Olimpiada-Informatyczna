@@ -1,0 +1,39 @@
+Metoda dodawanie()
+- tylko dla pierwszej sekcji
+
+    /// jak sprawdzić do której cyfry dodawanie się najbardziej opłaca (9908999, 9088990 itp.)
+    if (dodajemy do ostatniej cyfry w sekcji)
+        oneBtnPressesForSection = ilość brakująca sekcji do potęgi liczby 10 + 9
+    else
+        oneBtnPressesForSection = ? 
+        
+    rotateBtnPressesForSection = (ilość sekcji == 1) ? 0 : 1
+
+    return oneBtnPressesForSection + rotateBtnPressesForSection
+
+
+Metoda obracanie()
+
+    oneBtnPressesForSection = suma ilośći brakującej każdej z cyfr aby równała się 9, nie licząc 0
+
+    if (sekcja składa się z samych cyfr 9)
+        rotateBtnPressesForSection = 0
+    elif (sekcja nie zawiera zer) 
+        rotateBtnPressesForSection = długość sekcji - 1
+    else
+        rotateBtnPressesForSection = długość sekcji - ilość zer w sekcji
+
+if (n = 1)
+    return 0
+elif (n jest potęgą liczby 10)
+    return 1
+elif (n składa się z samych cyfr 9)
+    return 2
+else
+    if (perwsza sekcja)
+        totalBtnPresses += wynik z metody która zwróciła najmniejszą wartość
+    else
+        totalBtnPresses += wynik z metody Metoda obracanie
+    totalBtnPresses += 2
+
+    return totalBtnPresses
